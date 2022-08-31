@@ -1,7 +1,7 @@
 # borg-rsh-local
 Emulate ssh connection for local borg repository.
 
-__Borg__ <a href="https://borgbackup.readthedocs.io/">https://borgbackup.readthedocs.io/</a> can use a remote shell (*ssh*) connection from the dumping client to the server containing the repository.
+__Borgbackup__ <a href="https://borgbackup.readthedocs.io/">https://borgbackup.readthedocs.io/</a> can use a remote shell (*ssh*) connection from the dumping client to the server containing the repository.
 ````
 clntuser@client $  borg create -x dumpuser@repohost:/borg-repo::example /example
 ````
@@ -31,3 +31,19 @@ root@repohost# borg init --rsh "/sbin/opt/borg-rsh-local -r /borg" -e none dumpu
 root@repohost# export BORG_RSH="/sbin/opt/borg-rsh-local -r /borg"
 root@repohost# borg create -x dumpuser@repohost:/borg-repo::example /example
 ````
+
+## NOTES
+_borg-rsh-local_ __refuses__ to _execve(2)_ the borg backend as root.
+
+The _-r /directory_ option of _borg-rsh-local_ is passed to the _---restrict-to-path_ option of the _borg serve_ backend.
+
+_borg-rsh-local_ constructs _SSH_ORIGINAL_COMMAND_ variable emulating ssh. 
+
+## BUGS
+Doubtless legion.
+
+## SEE ALSO
+<a href="https://borgbackup.readthedocs.io/">https://borgbackup.readthedocs.io/</a>
+
+borgbackup(1) <a href="https://manpages.ubuntu.com/manpages/impish/en/man1/borgbackup.1.html">
+https://manpages.ubuntu.com/manpages/impish/en/man1/borgbackup.1.html</a>
