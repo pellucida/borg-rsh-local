@@ -1,8 +1,8 @@
-PROG    = borg-rsh-local
+PROG	= borg-rsh-local
 
-CFLAGS  += -Wall 
+CFLAGS	+= -Wall 
 
-$(PROG):       borg-rsh-local.o
+$(PROG):	borg-rsh-local.o
 
 clean:
-        rm -f *.o $(PROG)
+	rm -f *.o $(PROG)
