@@ -3,9 +3,9 @@ Emulate ssh connection for local borg repository.
 
 __Borg__ <a href="https://borgbackup.readthedocs.io/">https://borgbackup.readthedocs.io/</a> can use a remote shell (*ssh*) connection from the dumping client to the server containing the repository.
 ````
-cuser@client $  borg create -x dumpuser@repohost:/borg-repo::example /example
+clntuser@client $  borg create -x dumpuser@repohost:/borg-repo::example /example
 ````
-Here the user 'cuser' is creating a repo on 'repohost' as user 'dumpuser' by
+Here the user _clntuser_ is creating a repo on _repohost_ as user _dumpuser_ by
 ````
 ssh dumpuser@repohost borg serve --umask 077
 ````
