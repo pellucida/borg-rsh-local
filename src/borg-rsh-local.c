@@ -6,13 +6,13 @@
 //
 // # mount -o rw,nodev,noexec store:/rembck/borg /borg
 // # ls -ld /borg/example 
-// drwxrws--- . 4 root backup ... /borg/example
+// drwxrws--- . 4 root dumpuser ... /borg/example
 //
 // # borg init -e authenticated --rsh "/sbin/opt/borg-rsh-local -r /borg" \
-//               backup@localhost:/borg/example
+//               dumpuser@localhost:/borg/example
 //
 // # borg create --rsh "/sbin/opt/borg-rsh-local -r /borg" \
-//		 backup@localhost:/borg/example::example /example
+//		 dumpuser@localhost:/borg/example::example /example
 // 
 */
 # include	<unistd.h>
