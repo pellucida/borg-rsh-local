@@ -39,6 +39,7 @@ enum	{
 # define	ERRORS_STD_ENOMEM	ERRORS_STD_ENCODE(ENOMEM)
 # define	ERRORS_STD_ERANGE	ERRORS_STD_ENCODE(ERANGE)
 # define	ERRORS_STD_ENOENT	ERRORS_STD_ENCODE(ENOENT)
+# define	ERRORS_STD_EPERM	ERRORS_STD_ENCODE(EPERM)
 
 typedef	int	result_t;
 
@@ -259,7 +260,7 @@ static	result_t	setup_environ (remote_t* r) {
 //	do nothing (continue) otherwise an error.
 //
 static	result_t	become_user (remote_t* r) {
-	result_t	result	= err;
+	result_t	result	= ERRORS_STD_EPERM;
 	uid_t	caller	= getuid ();
 	uid_t	ruid	= r->uid;
 	gid_t	rgid	= r->gid;
@@ -267,10 +268,11 @@ static	result_t	become_user (remote_t* r) {
 		if (ruid != 0) {
 			setgid (rgid);
 			initgroups(r->user, rgid);
-			if (setuid (ruid) < 0)
+			if (setuid (ruid)==ok) 
+				result	= ok;
+			else
 				result	= ERRORS_STD_ENCODE(errno);
 		}
-		// else	don't run as root
 	}
 	else if (ruid == caller) {
 		result	= ok;
