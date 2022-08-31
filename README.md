@@ -31,7 +31,7 @@ root@repohost# borg init --rsh "/sbin/opt/borg-rsh-local -r /borg" -e none dumpu
 #With BORG_RSH
 root@repohost# export BORG_RSH="/sbin/opt/borg-rsh-local -r /borg"
 root@repohost# borg create -x dumpuser@repohost:/borg-repo::example /example
-```
+````
 
 ## NOTES
 - _borg-rsh-local_ __refuses__ to _execve(2)_ the borg backend as root.
