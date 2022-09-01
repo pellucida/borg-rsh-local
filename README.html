@@ -1,0 +1,62 @@
+BORG-RSH-LOCAL - emulate ssh connection for local borg repository.
+
+Background
+----------
+Borgbackup[1,2] can use a remote shell (ssh) connection from the dumping
+client to the server containing the repository.
+eg
+clntuser@client $ borg create -x dumpuser@repohost:/borg-repo::example /example
+
+Here the user clntuser is creating a repo on repohost as user dumpuser by
+
+	ssh dumpuser@repohost borg serve --umask 077
+
+The actual ssh command can be specified on the borg command line (--rsh)
+or via the BORG_RSH environment variable.
+
+When the client and repository are on the same machine but are different
+users - client is root (to access all files) and remote is dumpuser
+(for consistency with remote backups or where the repository is an NFS
+mounted volume and root_squash is in effect) one suggestion is to use
+ssh to localhost
+eg
+root@repohost# borg init -e none dumpuser@localhost:/borg-repo/example
+
+which has the overhead of creating clients ssh keys and configuring
+~dumpuser/.ssh/authorized_keys which for a root client is redundant.
+In addition there are extra ssh and a sshd process between the borg
+client and borg backend.
+
+Borg-rsh-local
+--------------
+borg-rsh-local emulates enough of a ssh connection between the borg
+client (running as root) and the borg backend running as dumpuser but
+unlike ssh-sshd removes itself by an execve(2) of the borg backend.
+
+Typical use with /sbin/opt/borg-rsh-local
+
+root@repohost# borg init --rsh "/sbin/opt/borg-rsh-local -r /borg" -e none \
+				dumpuser@localhost:/borg/borg-repo
+#With BORG_RSH
+root@repohost# export BORG_RSH="/sbin/opt/borg-rsh-local -r /borg"
+root@repohost# borg create -x dumpuser@repohost:/borg-repo::example /example
+
+NOTES
+-----
+borg-rsh-local refuses to execve(2) the borg backend as root.
+
+The -r /directory option of borg-rsh-local is passed to the
+--restrict-to-path  option of the borg serve backend.
+
+borg-rsh-local constructs the SSH_ORIGINAL_COMMAND environment variable
+emulating ssh.
+
+BUGS
+----
+Doubtless legion.
+
+SEE ALSO
+--------
+[1] Borg documentation borgbackup.readthedocs.io
+[2] borgbackup(1) manpages.ubuntu.com/manpages/impish/en/man1/borgbackup.1.html
+
