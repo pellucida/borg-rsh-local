@@ -40,6 +40,7 @@ enum	{
 # define	ERRORS_STD_ERANGE	ERRORS_STD_ENCODE(ERANGE)
 # define	ERRORS_STD_ENOENT	ERRORS_STD_ENCODE(ENOENT)
 # define	ERRORS_STD_EPERM	ERRORS_STD_ENCODE(EPERM)
+# define	ERRORS_STD_E2BIG	ERRORS_STD_ENCODE(E2BIG)
 
 typedef	int	result_t;
 
@@ -228,7 +229,7 @@ static	int	host_is_local (remote_t* r){
 // Add "key=value" to r->environ
 
 static	result_t	environ_append (remote_t* r, char* key, char* value) {
-	result_t	result	= err;
+	result_t	result	= ERRORS_STD_ENOMEM;
 	size_t	klen	= strlen (key);
 	size_t	vlen	= strlen (value);
 	size_t	buflen	= klen+vlen+2;
@@ -236,6 +237,8 @@ static	result_t	environ_append (remote_t* r, char* key, char* value) {
 	if (buf) {
 		if (buflen >= snprintf (buf, buflen, "%s=%s", key, value))
 			result	= strvec_append (&r->environ, buf);
+		else	
+			result	= ERRORS_STD_E2BIG;
 	}
 	return	result;
 }
@@ -341,7 +344,8 @@ int	main (int argc, char* argv[]) {
 		process_argv (&r, argc, argv)
 	);
 
-	if (strvec_count (&r.argv) == 5) { //[0]ssh [1]user@host [2]borg [3]serve [4]--umask=0077
+//[0]ssh [1]user@host [2]borg [3]serve [4]--umask=077
+	if (strvec_count (&r.argv) == 5) {
 		Fail_ (
 			remote_parse (&r)
 		);
