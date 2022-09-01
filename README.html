@@ -1,62 +1,38 @@
-BORG-RSH-LOCAL - emulate ssh connection for local borg repository.
+<h1 id="borg-rsh-local">borg-rsh-local</h1>
+<p>Emulate ssh connection for local borg repository.</p>
+<h3 id="background">Background</h3>
+<p><strong>Borgbackup</strong>  <a href="https://borgbackup.readthedocs.io/">borgbackup.readthedocs.io/</a> can use a remote shell (<em>ssh</em>) connection from the dumping client to the server containing the repository.</p>
+<pre><code>clntuser@client $  borg create -x dumpuser@repohost:/borg-repo::example /example
+</code></pre>
+<p>Here the user <em>clntuser</em> is creating a repo on <em>repohost</em> as user <em>dumpuser</em> by</p>
+<pre><code>ssh dumpuser@repohost borg serve --umask 077
+</code></pre>
+<p>The actual ssh command can be specified on the borg command line (<em>--rsh</em>) or via the <em>BORG_RSH</em> environment variable.</p>
+<p>When the client and repository are on the same machine but are different users - client is <strong>root</strong> (to access all files) and remote is <strong>dumpuser</strong> (for consistency with remote backups or where the repository is an <strong>NFS</strong> <em>mounted volume</em> and <strong>root_squash</strong> is in effect) one suggestion is to use <em>ssh</em> to localhost</p>
+<pre><code>root@repohost# borg init -e none dumpuser@localhost:/borg-repo/example
+</code></pre>
+<p>which has the overhead of creating clients <em>ssh keys</em> and configuring <em>~dumpuser/.ssh/authorized_keys</em> which for a root client is redundant. In addition there are extra <em>ssh</em> and a <em>sshd</em> process between the <em>borg client</em> and <em>borg backend</em>.</p>
+<h3 id="borg-rsh-local-1">Borg-rsh-local</h3>
+<p><strong>borg-rsh-local</strong> emulates enough of a ssh connection between the borg client (running as <em>root</em>) and the borg backend running as <em>dumpuser</em> but unlike <em>ssh-sshd</em> removes itself by an <strong>execve</strong>(<em>2</em>) of the borg backend.</p>
+<p>Typical use with <strong>/sbin/opt/borg-rsh-local</strong></p>
+<pre><code>root@repohost# borg init --rsh &quot;/sbin/opt/borg-rsh-local -r /borg&quot; -e none dumpuser@localhost:/borg/borg-repo
 
-Background
-----------
-Borgbackup[1,2] can use a remote shell (ssh) connection from the dumping
-client to the server containing the repository.
-eg
-clntuser@client $ borg create -x dumpuser@repohost:/borg-repo::example /example
-
-Here the user clntuser is creating a repo on repohost as user dumpuser by
-
-	ssh dumpuser@repohost borg serve --umask 077
-
-The actual ssh command can be specified on the borg command line (--rsh)
-or via the BORG_RSH environment variable.
-
-When the client and repository are on the same machine but are different
-users - client is root (to access all files) and remote is dumpuser
-(for consistency with remote backups or where the repository is an NFS
-mounted volume and root_squash is in effect) one suggestion is to use
-ssh to localhost
-eg
-root@repohost# borg init -e none dumpuser@localhost:/borg-repo/example
-
-which has the overhead of creating clients ssh keys and configuring
-~dumpuser/.ssh/authorized_keys which for a root client is redundant.
-In addition there are extra ssh and a sshd process between the borg
-client and borg backend.
-
-Borg-rsh-local
---------------
-borg-rsh-local emulates enough of a ssh connection between the borg
-client (running as root) and the borg backend running as dumpuser but
-unlike ssh-sshd removes itself by an execve(2) of the borg backend.
-
-Typical use with /sbin/opt/borg-rsh-local
-
-root@repohost# borg init --rsh "/sbin/opt/borg-rsh-local -r /borg" -e none \
-				dumpuser@localhost:/borg/borg-repo
 #With BORG_RSH
-root@repohost# export BORG_RSH="/sbin/opt/borg-rsh-local -r /borg"
+root@repohost# export BORG_RSH=&quot;/sbin/opt/borg-rsh-local -r /borg&quot;
 root@repohost# borg create -x dumpuser@repohost:/borg-repo::example /example
-
-NOTES
------
-borg-rsh-local refuses to execve(2) the borg backend as root.
-
-The -r /directory option of borg-rsh-local is passed to the
---restrict-to-path  option of the borg serve backend.
-
-borg-rsh-local constructs the SSH_ORIGINAL_COMMAND environment variable
-emulating ssh.
-
-BUGS
-----
-Doubtless legion.
-
-SEE ALSO
---------
-[1] Borg documentation borgbackup.readthedocs.io
-[2] borgbackup(1) manpages.ubuntu.com/manpages/impish/en/man1/borgbackup.1.html
+</code></pre>
+<h2 id="notes">NOTES</h2>
+<ul>
+<li><p><em>borg-rsh-local</em> <strong>refuses</strong> to <em>execve(2)</em> the borg backend as root.</p>
+</li>
+<li><p>The <em><strong>-r /directory</strong></em> option of <em>borg-rsh-local</em> is passed to the <em><strong>--restrict-to-path</strong></em>  option of the <em>borg serve</em> backend.</p>
+</li>
+<li><p><em>borg-rsh-local</em> constructs the <em>SSH_ORIGINAL_COMMAND</em> environment variable emulating ssh.</p>
+</li>
+</ul>
+<h2 id="bugs">BUGS</h2>
+<p>Doubtless legion.</p>
+<h2 id="see-also">SEE ALSO</h2>
+<p>Borg documentation <a href="https://borgbackup.readthedocs.io/">borgbackup.readthedocs.io</a></p>
+<p>borgbackup(1) <a href="https://manpages.ubuntu.com/manpages/impish/en/man1/borgbackup.1.html">manpages.ubuntu.com/manpages/impish/en/man1/borgbackup.1.html</a></p>
 
