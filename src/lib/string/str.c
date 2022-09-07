@@ -78,7 +78,12 @@ result_t	str_append (str_t* dst, str_t* src){
 	return	result;
 }
 result_t	str_append_char (str_t* sp, int ch){
-	result_t	result	= charvec_append (str_charvec(sp), (char)(ch));
+	charvec_t*	cv	= str_charvec(sp);
+	result_t	result	= charvec_remove_last (cv);
+	if (result==ok)
+		result	= charvec_append (cv, (char)(ch));
+	if (result==ok)
+		result	= charvec_append (cv, '\0');
 	return	result;
 }
 result_t	str_substr (str_t* dst, str_t* src, size_t start, size_t len){

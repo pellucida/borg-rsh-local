@@ -173,7 +173,7 @@ result_t	pointervec_Delete (pointervec_t** vpp){
 result_t	pointervec_append_n (pointervec_t* vp, pointer_t** src, size_t n){
 	result_t	result	= ok;
 	size_t		used	= pointervec_used_(vp);
-	if (used+n < pointervec_size_(vp)) {
+	if (used+n >= pointervec_size_(vp)) {
 		result	= pointervec_grow (vp, used+n);
 	}
 	if (result==ok) {
@@ -266,7 +266,7 @@ result_t	pointervec_append  (pointervec_t* vp, pointer_t* x){
 	result_t	result	= ok;
 	size_t		used	= pointervec_used_(vp);
 	size_t		size	= pointervec_size_(vp);
-	if (used == size) {
+	if (used >= size) {
 		result	= pointervec_grow (vp, used+1);
 	}
 	if (result==ok) {
