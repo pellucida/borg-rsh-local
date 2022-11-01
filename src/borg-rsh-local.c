@@ -29,11 +29,8 @@
 
 # include	"system/passwd.h"
 # include	"system/process.h"
+# include	"system/procfs_pid.h"
 
-
-# if	!defined(_PATH_BORG)
-# 	define	_PATH_BORG	"/bin/borg"
-# endif
 
 // Check for invalid returns and bail
 static	void inline	_ZERO_ (result_t retval, char* file, int line, char* msg) {
@@ -63,6 +60,7 @@ struct	remote_t {
 	strvec_t*	nargv;
 	strvec_t*	environ;
 	
+	str_t*	borg_path;
 	str_t*	ssh_original_command;
 	char*	restrict_path;
 };
@@ -287,7 +285,7 @@ static	result_t	process_argv (remote_t* r, int argc, char* argv[]){
 static	result_t	verify_argv (strvec_t* argv) {
 	result_t	result	= ERRORS_STD_EINVAL;
 	size_t	used	= strvec_used (argv);
-	if (used == 5){
+	if (used == 5 || used == 4){
 		str_t*	arg	= 0;
 		char*	args	= 0;
 		result	= strvec_get (argv, 2, &arg);
@@ -304,7 +302,7 @@ static	result_t	verify_argv (strvec_t* argv) {
 					result	= ERRORS_STD_EINVAL;
 			}
 		}
-		if (result==ok) {
+		if (result==ok && used == 5) {
 			result	= strvec_get (argv, 4, &arg);
 			if (result==ok){ 
 				args	= str_cstring (arg);
@@ -315,14 +313,37 @@ static	result_t	verify_argv (strvec_t* argv) {
 	}
 	return	result;
 }
+// Retrieve the borg command (python script) from
+// parent's command line
+static	result_t	getparent_borg (remote_t* r) {
+	pid_t	parent	= getppid ();
+	strvec_t*	argv	= 0;
+	result_t	result	= strvec_Create (&argv, 0);
+	if (result==ok) { 
+		result	= str_getargv_pid (argv, parent);
+		if (result==ok) {
+			str_t*	borg_path	= 0;
+			result	= str_Create (&borg_path, 0);
+			if (result==ok) {
+				result	= strvec_get (argv, 1, &borg_path);
+				if (result==ok)
+					r->borg_path	= borg_path;
+			}
+		}	
+		strvec_Delete (&argv);
+	}
+	return	result;
+}
+
 
 int	main (int argc, char* argv[]) {
-	str_t*	path_borg	= 0;
 	remote_t r	= { 
 		.argv		= 0,
 		.environ	= 0, 
 		.pw		= 0,
 		.nargv		= 0, 
+		.borg_path	= 0,
+		
 		.restrict_path	= 0,
 		.ssh_original_command	= 0,
 	};
@@ -359,11 +380,10 @@ int	main (int argc, char* argv[]) {
 	False2_ (
 			getuid()!=0,	"Naughty! Still running as root (uid==0)"
 	);
-	Fail_ (
-			str_Create_cstring (&path_borg, _PATH_BORG)
+	Fail2_ (
+		getparent_borg (&r),	"Could not retrieve original borg command from parent"
 	);
-
-	str_execve (path_borg, r.nargv, r.environ);
+	str_execve (r.borg_path, r.nargv, r.environ);
 
 	exit (EXIT_FAILURE);
 }

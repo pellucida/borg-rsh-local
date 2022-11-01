@@ -10,6 +10,9 @@ OBJ	= $(LIBSRC)/string/strvec.o $(LIBSRC)/string/str.o
 OBJ	+= $(LIBSRC)/system/passwd.o $(LIBSRC)/system/process.o
 OBJ	+= $(LIBSRC)/vector/charvec.o $(LIBSRC)/vector/pointervec.o
 OBJ	+= $(LIBSRC)/memory/memory.o
+OBJ	+= $(LIBSRC)/system/procfs_pid.o
+OBJ	+= $(LIBSRC)/system/readlink.o
+OBJ	+= $(LIBSRC)/system/stat.o
 
 BORGRSH_OBJ	= $(BORGRSH).o
 
